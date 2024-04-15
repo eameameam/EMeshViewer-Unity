@@ -33,21 +33,27 @@ private void DrawLeftPanel()
 {
     EditorGUILayout.BeginVertical(GUILayout.Width(200));
     
-    EditorGUILayout.Space(20);
-    EditorGUILayout.LabelField("Target Object");
+    EditorGUILayout.Space(10);
+    GUILayout.Label("EMeshViewer", EditorStyles.largeLabel);
+    
+    EditorGUILayout.Space(5);
+
+    GUILayout.Label("Choose GameObject below.", EditorStyles.miniLabel);
+    EditorGUILayout.Space(10);
+
     _selectedObject = EditorGUILayout.ObjectField("", _selectedObject, typeof(GameObject), true) as GameObject;
+    
+    EditorGUILayout.Space(10);
 
     if (GUILayout.Button("Find Meshes") && _selectedObject != null)
     {
         _meshRenderers = _selectedObject.GetComponentsInChildren<MeshRenderer>(true);
         _previews = new Texture2D[_meshRenderers.Length];
     }
-    
-    EditorGUILayout.Space(5);
 
     if (_meshRenderers != null && _meshRenderers.Length > 0)
     {
-        if (GUILayout.Button("Hide All", GUILayout.Width(200)))
+        if (GUILayout.Button("Hide All"))
         {
             HideAllMeshRenderers();
         }
@@ -57,12 +63,15 @@ private void DrawLeftPanel()
     
     if (_selectedObject != null)
     {
+        GUILayout.Label("Hierarchy", EditorStyles.helpBox);
+
         _hierarchyScrollPosition = GUILayout.BeginScrollView(_hierarchyScrollPosition, GUILayout.ExpandHeight(true));
         DrawHierarchyFoldouts(_selectedObject.transform, true);
         GUILayout.EndScrollView();
     }
     
     EditorGUILayout.EndVertical();
+    GUILayout.Box("", GUILayout.ExpandHeight(true), GUILayout.Width(4));
 }
 
 private void DrawRightPanel()
