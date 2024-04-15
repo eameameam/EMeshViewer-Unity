@@ -11,7 +11,8 @@ public class EMeshViewer : EditorWindow
     private Vector2 _scrollPosition;
     private Vector2 _hierarchyScrollPosition;
     private GameObject _selectedChild;
-
+    private bool _areMeshRenderersVisible = true;
+    
     [MenuItem("Escripts/EMeshViewer")]
     public static void ShowWindow()
     {
@@ -50,9 +51,9 @@ public class EMeshViewer : EditorWindow
 
         if (_meshRenderers != null && _meshRenderers.Length > 0)
         {
-            if (GUILayout.Button("Hide All"))
+            if (GUILayout.Button(_areMeshRenderersVisible ? "Hide All" : "Show All"))
             {
-                HideAllMeshRenderers();
+                ToggleMeshRenderersVisibility();
             }
         }
         
@@ -73,8 +74,16 @@ public class EMeshViewer : EditorWindow
 
     private void DrawRightPanel()
     {
-        UpdatePreviews();
         EditorGUILayout.BeginVertical();
+        if (_meshRenderers == null || _meshRenderers.Length == 0)
+        {
+            GUILayout.Label("Select an Object to view Mesh Renderers", EditorStyles.boldLabel);
+            EditorGUILayout.EndVertical();
+            return;
+        }
+        
+        UpdatePreviews();
+        
         if (_meshRenderers != null)
         {
             _scrollPosition = GUILayout.BeginScrollView(_scrollPosition, GUILayout.ExpandHeight(true));
@@ -208,42 +217,43 @@ public class EMeshViewer : EditorWindow
     
     private void UpdatePreviews()
     {
+        bool[] originalStates = new bool[_meshRenderers.Length];
+
         for (int i = 0; i < _meshRenderers.Length; i++)
         {
             var meshRenderer = _meshRenderers[i];
-            if (meshRenderer != null && _previews[i] == null)
+            if (meshRenderer != null)
             {
-                var transform = meshRenderer.transform;
-                Vector3 originalPosition = transform.position;
-                Quaternion originalRotation = transform.rotation;
-                Vector3 originalScale = transform.localScale;
-
-                transform.position = Vector3.zero;
-                transform.rotation = Quaternion.identity;
-                transform.localScale = Vector3.one;
-
+                originalStates[i] = meshRenderer.enabled;
+                meshRenderer.enabled = true;
+            
                 _previews[i] = AssetPreview.GetAssetPreview(meshRenderer.gameObject);
-
-                var transform1 = meshRenderer.transform;
-                transform1.position = originalPosition;
-                transform1.rotation = originalRotation;
-                transform1.localScale = originalScale;
-
+            
                 if (_previews[i] == null)
                 {
                     Repaint();
                 }
             }
         }
+
+        for (int i = 0; i < _meshRenderers.Length; i++)
+        {
+            var meshRenderer = _meshRenderers[i];
+            if (meshRenderer != null && originalStates[i] != meshRenderer.enabled)
+            {
+                meshRenderer.enabled = originalStates[i];
+            }
+        }
     }
     
-    private void HideAllMeshRenderers()
+    private void ToggleMeshRenderersVisibility()
     {
+        _areMeshRenderersVisible = !_areMeshRenderersVisible;
         foreach (var meshRenderer in _meshRenderers)
         {
             if (meshRenderer != null)
             {
-                meshRenderer.enabled = false;
+                meshRenderer.enabled = _areMeshRenderersVisible;
             }
         }
         SceneView.RepaintAll();
